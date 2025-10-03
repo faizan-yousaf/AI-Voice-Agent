@@ -1,42 +1,80 @@
-# Social Media Workflow Automation
+# Web-based Voice AI Conversational Agent
 
-This project automates the workflow of generating social media content ideas, writing content, creating images, and storing everything in Google Sheets. The automation is triggered via WhatsApp or Telegram messages and leverages AI tools for content and image generation.
+This repository contains the implementation of a **real-time Voice AI Conversational Agent**, developed as per the PRD. It uses **React** for the frontend, **FastAPI** for the backend, and **LiveKit SDKs** to enable low-latency audio streaming, turn-taking, and natural back-and-forth voice conversations.
 
-## 🚀 Features
-- Trigger workflow by sending a message on WhatsApp or Telegram.
-- Get AI-generated post topics for your social handles.
-- Select a suggested topic or provide your own.
-- Automatically generate content and images using **Google NanoBanana** or any free AI tool.
-- Save all generated content and images directly into **Google Sheets** for easy management.
-- Simple, automated, and efficient social media posting workflow.
+## 🚀 Tech Stack
+- **Frontend**: React + Vite, LiveKit Web SDK  
+- **Backend**: FastAPI, LiveKit Server SDK  
+- **AI Services**:  
+  - STT: Whisper API, Retell, or equivalent  
+  - LLM: GPT, Claude, or equivalent  
+  - TTS: OpenAI TTS, ElevenLabs, or equivalent  
 
-## 🛠️ Tech Stack
-- **Messaging Platforms**: WhatsApp / Telegram
-- **AI Tools**: Google NanoBanana (for free content & image generation)
-- **Storage**: Google Sheets
-- **Automation Tool**: Gumloop
+## 📂 Monorepo Structure
+```
+frontend/   # React app
+backend/    # FastAPI app
+```
 
-## 📂 Workflow
-1. Send a trigger message to the bot (WhatsApp/Telegram).
-2. The bot generates post topics.
-3. Choose a topic (or provide your own).
-4. AI generates content + image.
-5. Results are automatically saved in Google Sheets.
+> ⚠️ Note: The current React project is located under `src/`. For PRD consistency, treat it as the `frontend/` directory.
 
-## ⚡ Use Case
-This workflow is perfect for:
-- Content creators who want to save time brainstorming ideas.
-- Social media managers looking to streamline post creation.
-- Entrepreneurs and startups who need consistent posting without manual effort.
+---
 
-## 📌 How to Use
-1. Set up Gumloop with this workflow.
-2. Connect your WhatsApp or Telegram bot.
-3. Configure Google Sheets integration.
-4. Start sending trigger messages and enjoy automated content generation!
+## ⚙️ Backend Setup
+1. Create and configure the environment file:
+```bash
+cp backend/.env.example backend/.env
+```
+Fill in the following keys:
+- `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`, `LIVEKIT_URL`  
+- `SYSTEM_PROMPT`  
+- `OPENAI_API_KEY` (or alternative STT/TTS provider key)  
 
-## 🤝 Contributing
-Contributions are welcome! Feel free to fork this repo, open issues, or submit pull requests.
+2. Install dependencies and start the backend:
+```bash
+cd backend
+python -m venv .venv
+. .venv/Scripts/activate  # Windows PowerShell: .venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8000
+```
 
-## 📜 License
-This project is licensed under the MIT License.
+### API Endpoints
+- `GET /token?identity=<id>&room=<room>` → Returns `{ token, url }` for LiveKit join  
+- `POST /start_session` → Initialize session with system prompt  
+- `POST /stop_session` → End session  
+- `WS /stream` → WebSocket control channel for transcripts & turn-taking (audio handled via LiveKit)  
+
+---
+
+## 💻 Frontend Setup
+1. Create a `.env` file in the frontend root with:
+```
+VITE_BACKEND_URL=http://localhost:8000
+```
+
+2. Install dependencies and run:
+```bash
+npm install
+npm run dev
+```
+Open the app at [http://localhost:8080](http://localhost:8080).
+
+---
+
+## 🔄 Turn-taking Logic
+- **Frontend** detects when the user stops speaking using LiveKit voice activity.  
+- **Transcripts** are sent to the backend over WebSocket.  
+- **Backend** executes the pipeline: `STT → LLM → TTS` only after the user turn ends.  
+- **AI Response** is synthesized and published as audio into the LiveKit room.  
+- **Frontend** plays the remote audio stream for natural interaction.  
+
+---
+
+## 📝 Notes
+- Replace placeholder LLM and TTS with any free-tier provider.  
+- Ensure your LiveKit project is correctly configured.  
+- For the demo (e.g., Loom recording), showcase:  
+  - Start/stop conversation  
+  - Transcript display (user + AI)  
+  - Real-time voice conversation in action  
