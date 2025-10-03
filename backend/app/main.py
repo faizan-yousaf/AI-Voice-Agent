@@ -6,6 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from livekit import api as lk_api
+from elevenlabs import ElevenLabs
+from livekit import rtc
 
 load_dotenv()
 
